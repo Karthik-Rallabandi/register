@@ -34,11 +34,20 @@ export default defineConfig({
   },
 
   /* Configure projects for major browsers */
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+    projects: [
+  {
+    name: 'chromium',
+    use: {
+      browserName: 'chromium',
+      headless: false,
+      viewport: null,
+      launchOptions: {
+        args: ['--start-maximized'],
+      },
     },
+  },
+],
+
 
     /*{
       name: 'firefox',
@@ -69,7 +78,6 @@ export default defineConfig({
     //   name: 'Google Chrome',
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     // },
-  ],
 
   /* Run your local dev server before starting the tests */
   // webServer: {

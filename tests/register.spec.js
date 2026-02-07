@@ -10,7 +10,7 @@ test("Verify That User is able to Register in Provider MantraCare Dashboard Succ
   await expect(page).toHaveURL('https://provider.mantracare.com/register');
 
   await page.locator('//input[@placeholder="Enter your name"]').type('Karthik', { delay: 100 });
-  await page.locator('//input[@placeholder="Enter your email"]').type('munna@gmail.com', { delay: 100 });
+  await page.locator('//input[@placeholder="Enter your email"]').type('bannd@gmail.com', { delay: 100 });
   await page.locator('//input[@placeholder="Phone Number"]').type('7894561323', { delay: 100 });
   await page.locator('//input[@placeholder="Enter your password"]').type('zxcvbnm$$$', { delay: 100 });
   await page.locator('//button[@type="submit"]').click();
