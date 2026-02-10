@@ -39,6 +39,9 @@ export default defineConfig({
     name: 'chromium',
     use: {
       browserName: 'chromium',
+      video:"on",
+      screenshot:"on",
+      trace:"on",
       headless: false,
       viewport: null,
       launchOptions: {

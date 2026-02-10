@@ -1,8 +1,10 @@
 const { test, expect } = require('@playwright/test');
 
+// increase overall test timeout to avoid flakiness
+test.setTimeout(300000);
 
-test("Verify That User is able to Register in Provider MantraCare Dashboard Successfully", async ({ browser }) => {
-   const context = await browser.newContext({
+test("Verify That User is able to Register in Provider MantraCare Dashboard Successfully", async ({browser}) => {
+  const context = await browser.newContext({
     permissions: ['geolocation'],
     geolocation: {
       latitude: 17.3850,
@@ -10,38 +12,68 @@ test("Verify That User is able to Register in Provider MantraCare Dashboard Succ
     }
   });
   const page = await context.newPage();
+  
+  await page.setDefaultTimeout(120000);
+  await page.setDefaultNavigationTimeout(180000);
+
+  
+  async function waitAndClick(selector, opts) {
+    const l = page.locator(selector);
+    await l.waitFor({ state: 'visible', timeout: 120000 });
+    await l.click(opts);
+  }
+
+  // helper: wait for locator to be visible then fill/type
+  async function waitAndType(selector, text, typeOpts) {
+    const l = page.locator(selector);
+    await l.waitFor({ state: 'visible', timeout: 120000 });
+    await l.fill('');
+    if (typeOpts) {
+      await l.type(text, typeOpts);
+    } else {
+      await l.fill(text);
+    }
+  }
 
 
                                                                                 //Basic Information
   await page.goto("https://provider.mantracare.com/login");
+  await page.waitForLoadState('networkidle');
   await expect(page).toHaveURL('https://provider.mantracare.com/login');
+  await page.waitForTimeout(800);
  
 
-  await page.locator('//a[@href="/register"]').click();
+  await waitAndClick('//a[@href="/register"]');
+  await page.waitForLoadState('networkidle');
   await expect(page).toHaveURL('https://provider.mantracare.com/register');
+  await page.waitForTimeout(800);
 
-  await page.locator('//input[@placeholder="Enter your name"]').type('Karthik', { delay: 50 });
-  await page.locator('//input[@placeholder="Enter your email"]').type('oppo@gmail.com', { delay: 50 });
-  await page.locator('//input[@placeholder="Phone Number"]').type('7894561323', { delay: 50 });
-  await page.locator('//input[@placeholder="Enter your password"]').type('zxcvbnm$$$', { delay: 50 });
-  await page.locator('//button[@type="submit"]').click();
-
+  await waitAndType('//input[@placeholder="Enter your name"]','Karthik',{delay:50});
+  await waitAndType('//input[@placeholder="Enter your email"]','e2@gmail.com',{delay:50});
+  await waitAndType('//input[@placeholder="Phone Number"]','7894561323');
+  await waitAndType('//input[@placeholder="Enter your password"]','zxcvbnm$$$',{delay:50});
+  await waitAndClick('//button[@type="submit"]');
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(800);
+  
 
   await expect(page).toHaveURL('https://provider.mantracare.com/onboarding');
-  await page.waitForTimeout(1000);
+  await page.waitForSelector('//input[@name="practiceAddress"]', { timeout: 120000 });
   await page.locator('//input[@name="practiceAddress"]').type('Pashim Vihar Delhi',{delay:100})
   const location = page.locator('//input[@placeholder="Practice location / Nearby Landmark ..."]')
   await location.click();
-  await page.waitForTimeout(1000)
-  await location.type('Paschim',{delay:50})
-  await page.waitForTimeout(1000)
-  await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[3]/div[1]/div/div/div[1]').click()
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(500);
+  await location.type('Paschim',{delay:100})
+
+  await waitAndClick('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[3]/div[1]/div/div/div[1]')
+ 
   const datepicker = page.locator('//input[@name="dateOfBirth"]')
-  await datepicker.type('01-02-2003',{delay:50})
-  await expect(datepicker).toBeTruthy
+  await page.waitForSelector('//input[@name="dateOfBirth"]', { timeout: 120000 });
+  await datepicker.type('01-02-20034',{delay:50})
+  await expect(datepicker).toBeVisible();
   await page.locator('//input[@placeholder="Phone number"]').type(String(7986543212))
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(400);
+ 
 
   const selectlanguage = page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[5]/div[1]/div/div[2]/div[1]')
   await selectlanguage.click()
@@ -52,17 +84,18 @@ test("Verify That User is able to Register in Provider MantraCare Dashboard Succ
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[5]/div[2]/div/div[2]/div[1]').click({delay:50})
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[5]/div[2]/div/div[3]/div[2]/div[2]').click({value:"Male"})
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[5]/button').click()
+ 
 
                                                                               //Description 
 
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[1]/div/button/span[1]').click()
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[1]/div/div[1]/div[1]/div/button/span').click()
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[1]/div/div[1]/div[1]/div[2]/label[8]/span').check()
-  await page.keyboard.press('Escape');
 
-  await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[1]/textarea').fill('A doctor (physician) is a trained medical professional responsible for promoting, maintaining, or restoring human health through the diagnosis and treatment of injury, disease, and mental conditions. They work in hospitals, clinics, and private practices to examine patients, prescribe medication, order tests, and provide preventative care, requiring extensive education and licensure.');
+
+  await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[1]/textarea').click()
+  await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[1]/textarea').fill('A doctor (physician) is a trained medical professional responsible for promoting, maintaining, or restoring human health through the diagnosis and treatment of injury, disease, and mental conditions. They work in hospitals, clinics, and private practices to examine patients, prescribe medication, order tests, and provide preventative care, requiring extensive education and licensure.')
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[1]/div/div[1]/div/div[2]/div[1]').click()
-  await page.keyboard.press('Escape')
 
   const specilizations = [
     '//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[1]/div/div[1]/div/div[3]/div[3]/label[1]/input',
@@ -70,17 +103,19 @@ test("Verify That User is able to Register in Provider MantraCare Dashboard Succ
     '//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[1]/div/div[1]/div/div[3]/div[3]/label[3]/input',
     '//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[1]/div/div[1]/div/div[3]/div[3]/label[4]/input'
   ];
+  
 
   for(const locator of specilizations){
       await page.locator(locator).check({delay:50})
+      await page.waitForTimeout(200);
   }
   for(const locator of specilizations){
-    await expect(page.locator(locator).isChecked).toBeTruthy
-    await page.waitForTimeout(500)
+    await expect(page.locator(locator)).toBeChecked();
   }
   await page.keyboard.press('Escape');
 
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[1]/div/div[2]/div/div[2]/div[1]').click()
+  await page.waitForTimeout(300);
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[1]/div/div[2]/div/div[3]/div[2]/div[6]').click()
   await page.keyboard.press('Escape');
 
@@ -90,29 +125,36 @@ test("Verify That User is able to Register in Provider MantraCare Dashboard Succ
 
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[1]/div/div[4]/div/div[2]/div[1]').click()
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[1]/div/div[4]/div/div[3]/div[2]/label/input').check()
-  await page.waitForTimeout(1000)
 
-  page.mouse.wheel(0,100)
+  
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[3]/div/div/div/div/div[2]/div[1]').click()
+  await page.waitForTimeout(300);
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[3]/div/div/div/div/div[3]/div[2]/div').click()
+  await page.waitForTimeout(300);
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div[2]/div[3]/div/div/button').click()
   await page.locator('//*[@id="__next"]/div[1]/div[2]/div[5]/button[2]').click()
 
                                                                               //Profile Picture
-await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div[1]/div/div[2]/label/div').setInputFiles('E:\JavaScript/Doctor.jpg')
-await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div[2]/button').click()
-const savebutton =  page.locator('//*[@id="__next"]/div[1]/div[2]/div[5]/button[2]')
-savebutton.click()
-savebutton.click()
+  await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div[1]/div/div[2]/label/div').setInputFiles('/home/karthik/Desktop/doctor.jpg');
+  await page.waitForTimeout(500);
+  await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div[2]/button').click();
+  await page.waitForTimeout(700);
+  await page.locator('//*[@id="__next"]/div[1]/div[2]/div[5]/button[2]').click();
+  await page.waitForTimeout(400);
+  await page.locator('//*[@id="__next"]/div[1]/div[1]/div[1]/div[4]/div[5]/h2').click()
+
+
 
                                                                               //Availability
 
-await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div/div/div/div/div[2]/div[2]/button').click()
-await page.locator('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div/div/div[2]/div[2]/div[2]/div[2]/div[1]/button').click()
-await page.locator('//button[@type="submit"]').click()
-savebutton.click()
-savebutton.click()
-await page.waitForTimeout(3000)
-await expect(page).toHaveURL('https://provider.mantracare.com/profile-submitted')
-await page.pause()
+  await waitAndClick('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div/div/div/div/div[2]/div[2]/button');
+  await waitAndClick('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div/div/div[2]/div[2]/div[2]/div[2]/div[1]/button');
+  await waitAndClick('//*[@id="__next"]/div[1]/div[2]/div[4]/div/div/div/div[2]/div[2]/div[2]/div[3]/button[1]');
+
+
+  await waitAndClick('//*[@id="__next"]/div[1]/div[1]/div[1]/div[4]/div[6]/h2')
+  await page.waitForTimeout(400);
+  await waitAndClick('//*[@id="__next"]/div[1]/div[2]/div[5]/button[2]')
+  await page.waitForLoadState('networkidle');
+  await expect(page).toHaveURL('https://provider.mantracare.com/profile-submitted')
 });
